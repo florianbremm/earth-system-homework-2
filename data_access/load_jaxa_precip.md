@@ -91,6 +91,9 @@ Meta data is discarded, code can be adapted to also save meta-data
 
 For a large number of files, the current directory structure might not be sufficient, can be adapted for specific needs.
 
+### Parallelization
+
+Since the data is loaded for each time-frame (daily, montly or yearly) independently, one can parallelize the whole operation across multiple threads, as long as the API itself can handle it.
 
 ## Portal challenges
 

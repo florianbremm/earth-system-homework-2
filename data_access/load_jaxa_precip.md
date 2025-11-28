@@ -7,11 +7,10 @@
 The Global Satellite Mapping of Precipitation (GSMaP) is a global precipitation dataset produced by JAXA's Earth Observation Research Center (EORC). The daily gauge-adjusted product provides precipitation estimates at high spatial resolution covering most of the globe.
 
 **Key Specifications:**
-- **Variable:** Daily accumulated precipitation (gauge-adjusted)
-- **Spatial Coverage:** Global, 60°N to 60°S
-- **Spatial Resolution:** 0.1° × 0.1° (approximately 10 km at equator)
-- **Temporal Coverage:** March 2000 - February 2014 (Version 6)
-- **Temporal Resolution:** Daily accumulation (00Z to 23Z UTC)
+- **Spatial Coverage:** Global
+- **Spatial Resolution:** 0.1 deg
+- **Temporal Coverage:** 2000/03/01 to Present
+- **Temporal Resolution:** daily
 - **Data Format:** Cloud Optimized GeoTIFF (COG) via JAXA Earth API
 - **Units:** Precipitation rate (mm/day)
 
@@ -20,12 +19,13 @@ The Global Satellite Mapping of Precipitation (GSMaP) is a global precipitation 
 The GSMaP dataset combines data from multiple satellite sources:
 - **Primary Sensors:** Multi-band passive microwave and infrared radiometers
 - **Satellites:** GPM Core Observatory and constellation satellites
-- **Processing Algorithm:** GSMaP algorithm version 6 (product version 3)
-- **Gauge Adjustment:** The daily precipitation values are calibrated using NOAA/CPC ground-based gauge measurements to improve accuracy
+- **Processing Algorithm:** GSMaP algorithm
 
-**Important Note:** Version 6 (product version v03) does not detect snowfall. For datasets covering periods after February 2014, version 7 should be used, which includes improved snowfall detection.
 
-**Citation:**
+**Citations:**
+
+Japan Aerospace Exploration Agency. (1998): GSMaP(Hourly). https://doi.org/10.57746/EO.01gs73bkt358gfpy92y2qns5e9
+
 Kubota, T., et al. (2020): Global Satellite Mapping of Precipitation (GSMaP) products in the GPM era, Satellite precipitation measurement, Springer, https://doi.org/10.1007/978-3-030-24568-9_20
 
 ## Gathering Information about the Dataset
@@ -40,7 +40,7 @@ Generally, the G-Portal website seems very convoluted, with an outdated document
 
 ### JAXA Earth API
 
-__JAXA Earth API__ is another access point to some of the datasets JAXA provides. The [website](https://data.earth.jaxa.jp/en/) is structured much more clearly, with a succinct overview over all the datasets and [clear documentation](https://data.earth.jaxa.jp/api/python/) on how to access the data using either Python or JavaScript. Access to the data via this API requires no authentication, just the installation of a python-package, which is also detailed in the [documentation](https://data.earth.jaxa.jp/api/python/v0.1.4/en/quick.html).
+__JAXA Earth API__ is another access point to some of the datasets JAXA provides. The [website](https://data.earth.jaxa.jp/en/) is structured much more clearly, with a succinct overview over all the datasets and [clear documentation](https://data.earth.jaxa.jp/api/python/) on how to access the data using either Python or JavaScript. Access to the data via this API requires no authentication, just the installation of a python-package, which is also detailed in the [documentation](https://data.earth.jaxa.jp/api/python/v0.1.4/en/quick.html). While there is some documentation on how to use the package, it is not sufficient for technical questions. However, since the zipped package needs to be downloaded anyway, it is possible to simply inspect the code.
 
 The information on the datasets is also readily available. On the main information page for each dataset (here for [Precip (daily)](https://data.earth.jaxa.jp/en/datasets/#/id/JAXA.EORC_GSMaP_standard.Gauge.00Z-23Z.v6_daily)), all relevant information is either mentioned or linked: For example, the [source data](https://eolp.jaxa.jp/GSMaP_Hourly.html) being used to compile the dataset, which contains all relevant technical information.
 
@@ -54,42 +54,53 @@ The JAXA Earth API provides data in **Cloud Optimized GeoTIFF (COG)** format, wh
 - **Metadata included:** Georeferencing information embedded in file
 - **Efficient:** Supports compression and internal tiling
 
-When loaded via the API, the data structure is:
-- **Shape:** (time_steps, height, width, 1) as a numpy array
-- **Coordinate system:** WGS84 (EPSG:4326)
-- **Data type:** Float32
+However, this presents a limitation for our purposes, since it is not possible to directly download the desired data to disk.
 
 # Data Access
 
 ## Loading required Data from Server
 
+Loading the data from the API is very straight-forward; you only need to include the relevant parameters in the call and receive a `data` object. Within the package, this object can then be used to run ad-hoc analyses or visualizations, by passing it to an `ImageProcess`. From these, it is also possible to retrieve the raw data as a numpy-array.
+
 ## Saving Data
+
+Since it is not possible to directly download the data-files, I wrote functions to save the retrieved data in GeoTIFF files. To make this whole process more secure and resistant to failure, I implemented some additional functionality, such as the chunked-requests. I utilized the `rasterio` package to write the data to file. The data is then saved according to this directory structure:
+
+```<output_dir>/
+    <dataset-identifier>/
+        <band>/
+            <chunk-date>.tif
+```
 
 ## Loading Data from File
 
+The data from the file can again be read using the `rasterio` package. You then have access to the numpy-array of data, in the same format as it was saved, together with some metadata. The data  can then be used as desired.
+
 ## G-Portal third-party package
+
+In the `extra_jaxa_precip.ipynb` notebook, I prepared the code to load the same dataset as from the JAXA Earth API from G-Portal, using the [third-party package](https://gportal.readthedocs.io/en/stable/). In this package, filtering by date and bounding-box is also possible. There does not seem to be a functionality for reducing the resolution of the data, as is possible in the JAXA Earth API. While there exists a resolution-key in the [docs for search parameters](https://gportal.jaxa.jp/gpr/assets/mng_upload/COMMON/upload/GPortalUserManual_en.pdf#page=120.13), setting any value for this did not yield any results. 
 
 # Scaling Up
 
-There are some limitation coming with the access via __JAXA Earth API__:
+Here are some considerations when wanting to scale up or adapt the code for retrieval from the __JAXA Earth API__:
 
 ## Technical Challenges 
 
 ### In-memory data
 
-additional I/O operations make the download slower than it needs to be
+The JAXA Earth API loads all requested timesteps and spatial subsets into memory at once.
+Large requests require significant RAM and can exceed available memory.
+The notebook mitigates this through date-chunking, but the API itself offers no streaming or partial-download options. Additionally, the I/O operations intruduced through this extra step may slow down the process more than it needs to.
 
 ### File-formats
 
-currently, the code only supports a single data-format
+GeoTIFF is used as the output format, closely matching the API’s COG design.
+The current pipeline writes only GeoTIFF; other file-types can be supported by simply adapting the `save_data_to_disk` function.
 
 ### Meta-data
 
-Meta data is discarded, code can be adapted to also save meta-data
-
-### Directory structure
-
-For a large number of files, the current directory structure might not be sufficient, can be adapted for specific needs.
+The saved files include CRS, transform and bounds.
+If future analysis requires other meta-data, the writing routine must be extended.
 
 ### Parallelization
 
@@ -99,8 +110,4 @@ Since the data is loaded for each time-frame (daily, montly or yearly) independe
 
 ### Dataset Availability
 
-Via G-Portal, many more datasets are available
-
-### Not enough control
-
-Smallest increment is _daily_ data, however, via G-Portal (as shown in the `extra_jaxa_precip.iynb` notebook), hourly data is available, from which the dataset is derived.
+Via G-Portal, many more datasets are available - also the hourly dataset on which this daily dataset is based. It is also possible to (1) download the data directly to disk and (2) specify different file formats (like HDF). It would thus have been nice to be able to use G-Portal directly, which, however, was not possible due to the inconsistencies in website and documentation. While the third-party pip-package seems to work, it is to be used at own risk, since you need to provide your login-credentials when downloading.

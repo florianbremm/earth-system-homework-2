@@ -1,4 +1,8 @@
+
 # Earth System Data Processing
+
+**Author**: Yeganeh Khabbazian  
+**Course**: Earth System Data Processing, University of Cologne, Winter Semester 2025/26
 
 This repository contains homework assignments for the Earth System Data Processing course.
 

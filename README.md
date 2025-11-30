@@ -1,51 +1,58 @@
-# Earth System Data Processing
+# ECMWF AIFS Data Download and Visualization
 
-Collection of notebooks and information on various aspects of Earth system data processing.
+Practical example for downloading and visualizing ECMWF AIFS (Artificial Intelligence/Integrated Forecasting System) surface forecast data using ECMWF Open Data.
 
-This repository contains material that has been provided for and developed during the lecture on
-*Earth System Data Processing* at the University of Cologne in the winter semester 2025/26. The lecture
-covered topics such as finding and accessing data from modern web services, coordinate systems,
-remapping and interpolation, common file formats, types of Earth system data, numerical model grids,
-metadata standards, FAIR data.
+This repository contains material developed as part of the homework assignment for the *Earth System Data Processing* course at the University of Cologne (Winter Semester 2025/26).
 
-The course uses an inverse classroom concept, where the actual lectures are recorded, while students
-discuss the lecture content and work on practical examples during the course hours. The material 
-in this repository forms the basis for the practical exercises. Students will also be assigned 
-coding tasks as homework and the results shall be included here to establish a collection of useful routines 
-for other students and scientists who wish to learn the basics of Earth system data processing.
+## Content
 
-*Note:* Due to the background of the lecturer, the focus of this material is on atmospheric data.
-Nevertheless, many concepts and routines can also be applied to other Earth system data. Feel free to contribute
-material for other data types if you find this repository useful.
+- **`data_access/AIF.ipynb`**: Jupyter notebook demonstrating how to download AIFS Single (deterministic) surface forecasts from ECMWF Open Data and create global visualizations
+- **`environment.yml`**: Conda environment with all required dependencies
+- **`data_access/aifs_input_output_fields.png`**: AIFS architecture diagram showing model input/output fields
 
-*Author:* Martin Schultz, Jülich Supercomputing Centre, Forschungszentrum Jülich & Department of Computer Science and Math, University of Cologne
-October 2025
-# Earth System Data Processing
+## Quick Start
 
-This project explores ECMWF **AIFS** (Artificial Intelligence Forecasting System) data using [Earthkit](https://earthkit.readthedocs.io/en/latest/).
+### 1. Create and activate the Conda environment
 
-## Setup
-
-1. Create a Conda environment:
-   ```bash
-   conda create -n aifs python=3.11
-   conda activate aifs
-   conda install -c conda-forge earthkit-data earthkit-plots ecmwf-opendata cfgrib xarray matplotlib cartopy
-# AIFS Single: Surface Download + Quicklook
-
-This notebook/script downloads ECMWF **AIFS Single** surface fields from **ECMWF Open Data** and plots a global quicklook.
-
-## What it does
-- Fetches `2t`, `10u`, `10v`, `msl` at steps `[6, 12, 24]` for a given run (`date`, `time`)
-- Saves GRIB2 files under `data/`
-- Optionally opens with `xarray+cfgrib` and plots with Cartopy
-
-## Requirements
-- Conda (recommended on Windows)
-- See `environment.yml` for all packages (PROJ/GEOS handled by conda-forge)
-- ECMWF Open Data retention is short (≈ a few days). Use recent runs only.
-
-## Setup
 ```bash
 conda env create -f environment.yml
 conda activate aifs
+```
+
+### 2. Run the Notebook
+
+Open `data_access/AIF.ipynb` in Jupyter Lab or VS Code and execute the cells sequentially.
+
+## Requirements
+
+All dependencies are specified in `environment.yml`:
+- Python 3.11
+- earthkit-data (ECMWF Open Data client)
+- xarray + cfgrib (GRIB2 file reading)
+- matplotlib + cartopy (visualization)
+- eccodes (GRIB decoding library)
+
+## Data Volume Estimates
+
+**Per GRIB2 file** (4 variables, one forecast step):
+### 2. Run the notebook
+
+```bash
+jupyter lab data_access/AIF.ipynb
+```
+
+Or open in VS Code with the Jupyter extension.
+
+## What the Notebook Does
+
+- Downloads 3 recent days of AIFS Single surface forecasts (12 UTC initialization)
+- Variables: 2m temperature, 10m winds, mean sea level pressure
+- Forecast steps: +6h, +12h, +24h
+- Saves data as GRIB2 files (~22 MB total)
+---
+
+**Course**: Earth System Data Processing, University of Cologne, Winter Semester 2025/26  
+**Instructor**: Martin Schultz, Jülich Supercomputing Centre & University of Cologne  
+**Assignment**: Homework on accessing and processing ECMWF AIFS data  
+**Author**: Yeganeh Khabbazian
+**Tools**: Developed with assistance from GitHub Copilot

@@ -14,32 +14,41 @@ I selected **IMERG Half-Hourly Final Run (V07)** because:
 
 ---
 
-### Searching & Navigating Data Portals
+## 2. Searching & Navigating Data Portals
 
-I started at NASA’s IMERG information page and navigated into the GES DISC data archive. The dataset structure was straightforward:
-- Dataset: GPM_3IMERGHH.07 (Half-hourly, Version 07)
-- Runs: Early(GPM_3IMERGHHE), Late(GPM_3IMERGHHL), Final(GPM_3IMERGHH). I chose Final
+NASA organizes satellite precipitation products into processing “levels”:
+
+- **Level 1** – Instrument measurements that have been calibrated, geolocated, and converted into sensor units (e.g., brightness temperatures).  
+- **Level 2** – Geophysical variables retrieved from Level 1 data at the same spatial/temporal resolution (e.g., rain rate from microwave retrievals).  
+- **Level 3** – Spatially and/or temporally resampled datasets derived from Level 1/2. These are gridded, analysis-ready products.
+
+IMERG **Level 3** merges observations from multiple microwave and infrared sensors and produces global precipitation fields on a uniform 0.1° × 0.1° grid.
+
+For this homework, I focused on:
+
+- **GPM_3IMERGHH.07** — Half-hourly, Version 07 (30 min)  
+  https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHH_07/summary?keywords=%22IMERG%20final%22
+
+Other IMERG Final Run products include:  
+- **Daily**: https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDF_07/summary?keywords=%22IMERG%20final%22  
+- **Monthly**: https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGM_07/summary?keywords=%22IMERG%20final%22  
+
+Within the half-hourly dataset, NASA provides three processing runs:  
+- **Early (HHE)** – available quickly, lower-quality  
+- **Late (HHL)** – improved latency and calibration  
+- **Final (HHR)** – highest-quality, gauge-corrected product  
+
+Since the Final Run (HHR) is the most accurate and intended for research, I selected it for this work.
 
 Directory layout:
-/YEAR/DAY-OF-YEAR (001–365)/48 × half-hourly HDF5 files
-
+/YEAR/DAY-OF-YEAR (001–365)/
+  ├── 48 × half-hourly HDF5 data files
+  └── 48 × matching XML metadata files
 
 Example directory I worked with:
 
-https://gpm1.gesdisc.eosdis.nasa.gov/data/GPM_L3/GPM_3IMERGHH.07/2025/122/
+https://gpm1.gesdisc.eosdis.nasa.gov/data/GPM_L3/GPM_3IMERGHH.07/2025/121/
 
-
-Before downloading, I registered for an Earthdata Login. You can register here:
-https://urs.earthdata.nasa.gov/home
-
-Then I went to the Applications Tab, and clicked on "Approve more Applications". From the list I selected the **NASA GESDISC DATA ARCHIVE** and approved it. This allows you to now download the dataset in question.
-
-The interface was well organized:
-- Navigating by year → day-of-year felt intuitive
-- Files were clearly named
-- Metadata files (.xml) are provided as well
-
-Download options include GUI (browser) or automated Python access
 
 ---
 
@@ -57,21 +66,21 @@ https://gpm.nasa.gov/media/708
 #### GES DISC IMERG Product Page  
 https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHH_07/summary
 
-These explained:
-
-- Data sources (microwave + IR sensors)  
-- Multi-satellite merging  
-- Differences between Early/Late/Final   
-- File naming conventions  
-- Directory structure  
-
 Everything was well linked and beginner-friendly.
 
 ---
 
 ### 4. Authentication & Technical Workflow
+Before downloading, I created an Earthdata Login account  
+(https://urs.earthdata.nasa.gov/home).  
+To enable programmatic access, I went to the **Applications** tab and approved the  
+**NASA GESDISC DATA ARCHIVE** application. This authorization is required for accessing IMERG files via HTTPS.
+Earthdata Login also provides access to many other NASA data archives.  
+Users can approve additional applications in the same way, depending on which datasets they want to access. 
 
-GES DISC requires **Earthdata login authentication**, no API token needed.
+GES DISC uses standard Earthdata Login authentication; no additional API token is needed.
+
+
 
 ####  Creating `.netrc`
 
@@ -132,7 +141,7 @@ Meaning:
 - 48 such files per day
 - V07B-Version
 - HHR-Half-hourly Final Run ("HH"=Half-hourly, “R” = Final)
-- Daily directory structure uses Day-of-Year (DOY), e.g.: 122=2 May 2025
+- Daily directory structure uses Day-of-Year (DOY), e.g.: 121=2 May 2025
 
 Once I understood this, navigation was trivial.
 
@@ -168,8 +177,3 @@ I used ChatGPT for the following verified queries:
 - Opening an HDF5 file with `h5py`:
   - I had never parsed HDF5 before
   - ChatGPT helped me explore the tree structure and attributes
-
-- Finding a “glob”-like way to list files:
-  - ChatGPT recommended using BeautifulSoup to parse HTML directory listings
-  - This approach worked very well
-  - All information was verified manually by testing and consulting NASA documentation.
